@@ -107,7 +107,7 @@ footer{flex:0 0 36px;display:flex;align-items:center;gap:12px;padding:0 16px;bac
   </div>
   <div class="spacer"></div>
   <div class="legend" id="legend"></div>
-  <button class="btn" id="btn-labels">Labels</button>
+  <button class="btn" id="btn-labels">Hide labels</button>
   <button class="btn" id="btn-reset">⟲ Reset</button>
   <button class="btn gold" id="btn-png">Save PNG</button>
   <button class="btn" id="btn-rail">⚙</button>
@@ -233,12 +233,12 @@ function buildNetwork() {
       outW: outW.get(name) || 0,
       inW: inW.get(name) || 0,
       totW: tot,
-      r: 6 + Math.sqrt(tot) * 1.6,
+      r: 12 + Math.sqrt(tot) * 2.0,
       ...(prev ? {x: prev.x, y: prev.y, vx: 0, vy: 0} : {})
     };
   });
   const maxR = Math.max(...S.nodes.map(n => n.r));
-  if (maxR > 34) S.nodes.forEach(n => n.r = 6 + (n.r - 6) * (28 / (maxR - 6)));
+  if (maxR > 40) S.nodes.forEach(n => n.r = 12 + (n.r - 12) * (28 / (maxR - 12)));
 
   const byName = new Map(S.nodes.map(n => [n.id, n]));
   const pairSet = new Set();
@@ -346,18 +346,83 @@ function init() {
     })
     .on('click', (ev, n) => { ev.stopPropagation(); selectNode(n); });
 
+  // Abbreviation map for in-circle labels — short prefixes/domains
+  function abbrev(name) {
+    const overrides = {
+      'Department of English':'ENGL','Department of History':'HIST',
+      'Department of Politics and Philosophy':'POLS/PHIL',
+      'Department of Psychology and Communication':'PSYC/COMM',
+      'Department of Culture, Society and Justice':'SOC/SOCJ',
+      'Modern Languages and Cultures':'MLC',
+      'School of Global Studies':'GLOBAL',
+      'School of Journalism and Mass Media':'JAMM',
+      'School of Music':'MUSIC',
+      'Theatre Arts':'THEA',
+      'Mathematics and Statistical Science':'MATH/STAT',
+      'Computer Science':'CS',
+      'Department of Computer Science':'CS',
+      'Department of Mechanical Engineering':'ME',
+      'Department of Civil and Environmental Engineering':'CEE',
+      'Department of Chemical and Biological Engineering':'CBE',
+      'Department of Electrical and Computer Engineering':'ECE',
+      'Department of Nuclear Engineering and Industrial Management':'NE/IM',
+      'Biological Sciences':'BIOL',
+      'Chemistry':'CHEM',
+      'Physics':'PHYS',
+      'Earth and Spatial Sciences':'ESS',
+      'Geography and Geological Sciences':'GEOG/GEOL',
+      'Microbiology, Molecular Biology and Biochemistry':'MMBB',
+      'Accounting and Management Information Systems':'ACCT/MIS',
+      'Business':'BUS',
+      'Department of Business':'BUS',
+      'Economics':'ECON',
+      'Department of Plant Sciences':'PLSC',
+      'Animal, Veterinary and Food Sciences':'AVFS',
+      'Department of Soil and Water Systems':'SOIL',
+      'Department of Agricultural Economics and Rural Sociology':'AGEC/RSOC',
+      'Entomology, Plant Pathology and Nematology':'EPPN',
+      'Food and Nutrition':'FN',
+      'Department of Forest, Rangeland and Fire Sciences':'FRFS',
+      'Fish and Wildlife Sciences':'FWLR',
+      'Natural Resources and Society':'NRS',
+      'Environmental Science':'ENVS',
+      'Movement Sciences':'MVSC',
+      'Curriculum and Instruction':'EDCI',
+      'Leadership and Counseling':'ED/L&C',
+      'Margaret Ritchie School of Family and Consumer Sciences':'FCS',
+      'Architecture and Interior Design':'ARCH/ID',
+      'Landscape Architecture':'LARC',
+      'Art and Visual Communication':'ART/VC',
+      'Art, Design and Visual Studies':'ADVS',
+      'College of Law':'LAW',
+      'College of Engineering':'ENGR',
+      'College of Science':'SCI',
+      'College of Natural Resources':'CNR',
+      'Honors Program':'HONORS',
+      'Program in Organizational Sciences':'ORGS',
+      'Bioinformatics and Computational Biology':'BCB'
+    };
+    if (overrides[name]) return overrides[name];
+    // fallback: initials of major words, max 6 chars
+    const stop = new Set(['of','and','the','de','in']);
+    const init = name.split(/[\s&,\-]+/).filter(w => w && !stop.has(w.toLowerCase())).map(w => w[0].toUpperCase()).join('');
+    return init.slice(0, 6) || name.slice(0, 6).toUpperCase();
+  }
+
   S.labelSel = labelG.selectAll('text')
     .data(S.nodes)
     .join('text')
-    .text(n => n.id)
+    .text(n => abbrev(n.id))
     .attr('text-anchor', 'middle')
-    .attr('font-size', 11)
-    .attr('fill', '#e6e9ef')
+    .attr('dominant-baseline', 'middle')
+    .attr('font-size', n => Math.max(7, Math.min(11, n.r * 0.55)))
+    .attr('fill', '#ffffff')
     .attr('pointer-events', 'none')
     .attr('paint-order', 'stroke')
-    .attr('stroke', '#0b1220')
-    .attr('stroke-width', '3px')
-    .style('font-weight', 600);
+    .attr('stroke', 'rgba(0,0,0,0.55)')
+    .attr('stroke-width', '2px')
+    .style('font-weight', 700)
+    .style('letter-spacing', '0.3px');
 
   const sim = d3.forceSimulation(S.nodes)
     .force('link', d3.forceLink(S.links).id(d => d.id).distance(l => 60 + l.source.r + l.target.r + l.w * 2).strength(0.5))
@@ -382,7 +447,7 @@ function init() {
       return `M${sx2},${sy2} Q${mx},${my} ${ex},${ey}`;
     });
     S.nodeSel.attr('cx', n => n.x).attr('cy', n => n.y);
-    S.labelSel.attr('x', n => n.x).attr('y', n => n.y - n.r - 6);
+    S.labelSel.attr('x', n => n.x).attr('y', n => n.y);
   });
 
   updateVisibility();
@@ -414,7 +479,7 @@ function activeNode(n) {
 function updateVisibility() {
   S.linkSel.style('display', l => activeLink(l) ? null : 'none');
   S.nodeSel.style('display', n => activeNode(n) ? null : 'none');
-  S.labelSel.style('display', n => (S.showLabels && activeNode(n)) ? null : 'none');
+  S.labelSel.style('display', n => activeNode(n) ? null : 'none');
   // recompute forces with new filter
   const aLinks = S.links.filter(activeLink);
   const aNodes = S.nodes.filter(activeNode);
@@ -561,9 +626,13 @@ $('charge').addEventListener('input', e => {
   S.sim.alpha(0.3).restart();
 });
 $('btn-labels').addEventListener('click', e => {
-  S.showLabels = !S.showLabels;
-  e.currentTarget.classList.toggle('gold', S.showLabels);
-  updateVisibility();
+  // Toggle between no labels, abbreviations in circles, abbreviations + full names on hover
+  if (!S.labelSel) return;
+  const current = e.currentTarget.dataset.state || 'in';
+  const next = current === 'in' ? 'off' : 'in';
+  e.currentTarget.dataset.state = next;
+  e.currentTarget.textContent = next === 'in' ? 'Hide labels' : 'Show labels';
+  S.labelSel.style('display', next === 'in' ? null : 'none');
 });
 $('btn-reset').addEventListener('click', () => {
   S.nodes.forEach(n => { n.fx = null; n.fy = null; });
