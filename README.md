@@ -8,8 +8,21 @@ Interactive visualization tools built from the **2026-2027 University of Idaho c
 |---------|-----|-------------|----------|
 | **v0.1** | `index.html` | Degree Maps (4-year plans of study) | What students actually schedule |
 | **v0.2** | `requirements-explorer.html` | Curriculum Requirements (degree requirement tables) | Full curricular structure incl. elective menus |
+| **v0.3** | `network-explorer-fullscreen.html` | Curriculum Requirements (same dataset as v0.2) | Presentation-grade fullscreen network map |
 
-Both are self-contained HTML files — open in any browser, no server needed.
+All are self-contained HTML files — open in any browser, no server needed.
+
+## v0.3 New Features — Fullscreen Presentation Map
+
+A single-purpose variant focused entirely on the network map for talks, screenshares, and wall displays (same dataset as v0.2).
+
+- **Near-fullscreen canvas** — slim 56px header, collapsible 230px control rail, 320px slide-in detail panel
+- **Dark presentation theme** for projector legibility
+- **Core vs All weighting toggle** (required-only vs required+elective-menu influencers)
+- **College multi-select chips**, min-weight slider, physics-strength slider, node search
+- **Zoom/pan** with double-click reset, free node drag (sticky fx/fy, cleared on reset)
+- **PNG export** of the current view
+- Self-contained (all data inline, no external resources)
 
 ## v0.2 New Features
 
@@ -21,6 +34,7 @@ Both are self-contained HTML files — open in any browser, no server needed.
 
 - `index.html` — v0.1 degree-map explorer (self-contained)
 - `requirements-explorer.html` — v0.2 requirements explorer (self-contained)
+- `network-explorer-fullscreen.html` — v0.3 presentation-grade fullscreen network map (self-contained, same dataset as v0.2)
 - `network-data.js`, `app/network_data.json` — v0.1 dataset
 - `network-requirements.js`, `app/network_requirements.json` — v0.2 dataset
 - `scripts/scrape_catalog.py` — degree-map crawler → `degree_data.json`
